@@ -1,4 +1,4 @@
-# 💇‍♀️ Shinto Salon Reservation System
+# Salon Reservation System
 
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
