@@ -42,7 +42,7 @@ class BookingController extends Controller
             'user_id'      => Auth::id() ?? null,
             'name'         => $request->name,
             'phone'        => $request->phone,
-            'date'         => $request->date,
+            'date'         => \Carbon\Carbon::parse($request->date)->format('Y-m-d'),
             'time'         => $request->time,
             'total_price'  => $service->price,
             'booking_code' => 'GLW-' . strtoupper(uniqid()),
