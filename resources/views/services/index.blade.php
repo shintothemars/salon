@@ -230,22 +230,18 @@
         </div>
     </div>
 
-    <!-- Services Table -->
-    <div class="services-table-wrapper">
+    <!-- Services Table dengan DataTables -->
+    <div class="services-table-wrapper" data-aos="fade-up">
         <div class="services-table-header">
             <h3 style="font-size: 1rem; font-weight: 600; margin: 0; color: var(--text-primary);">
                 Daftar Layanan
                 <span class="badge-gold ms-2">{{ $services->count() }}</span>
             </h3>
-            <div class="search-input-wrapper">
-                <i class="bi bi-search"></i>
-                <input type="text" class="search-input" id="searchService" placeholder="Cari layanan...">
-            </div>
         </div>
 
         @if($services->count() > 0)
         <div class="table-responsive">
-            <table class="table-custom" id="servicesTable">
+            <table class="table-custom" id="servicesTable" style="width:100%">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -293,7 +289,7 @@
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
                                 <button class="btn-danger-soft d-inline-flex align-items-center gap-1"
-                                    onclick="confirmDelete({{ $service->id }}, '{{ $service->name }}')"
+                                    onclick="confirmDelete({{ $service->id }}, '{{ addslashes($service->name) }}')"
                                     id="delete-service-{{ $service->id }}">
                                     <i class="bi bi-trash3"></i> Hapus
                                 </button>
@@ -317,58 +313,61 @@
     </div>
 </div>
 
-<!-- Delete Confirm Modal -->
-<div class="modal fade modal-custom" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title d-flex align-items-center gap-2" id="deleteModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
-                    Konfirmasi Hapus
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body py-4">
-                <p style="color: var(--text-secondary); margin-bottom: 8px;">Anda akan menghapus layanan:</p>
-                <p style="font-weight: 600; font-size: 1.05rem; color: var(--text-primary);" id="deleteServiceName"></p>
-                <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 8px;">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Tindakan ini tidak dapat dibatalkan. Data reservasi terkait juga akan terpengaruh.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-ghost" data-bs-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="POST" style="display:inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn-gold" id="confirmDeleteBtn">
-                        <i class="bi bi-trash3 me-2"></i>Hapus Layanan
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Delete Confirm (SweetAlert2 - tanpa modal bootstrap) -->
+<form id="deleteForm" method="POST" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 @endsection
 
 @push('scripts')
 <script>
-    // Search functionality
-    document.getElementById('searchService')?.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        document.querySelectorAll('#servicesTable tbody tr').forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(query) ? '' : 'none';
+$(document).ready(function () {
+    // Inisialisasi DataTables pada tabel layanan
+    if ($('#servicesTable').length) {
+        $('#servicesTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [[0, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [5] }
+            ],
+            language: {
+                search:            '',
+                searchPlaceholder: 'Cari layanan...',
+                lengthMenu:        'Tampilkan _MENU_ layanan',
+                info:              'Menampilkan _START_–_END_ dari _TOTAL_ layanan',
+                infoEmpty:         'Tidak ada data',
+                infoFiltered:      '(difilter dari _MAX_ total)',
+                paginate: {
+                    next:     '<i class="bi bi-chevron-right"></i>',
+                    previous: '<i class="bi bi-chevron-left"></i>'
+                },
+                zeroRecords:  'Tidak ada layanan yang cocok',
+                emptyTable:   'Belum ada data layanan'
+            }
         });
-    });
-
-    // Delete confirmation
-    function confirmDelete(id, name) {
-        document.getElementById('deleteServiceName').textContent = name;
-        document.getElementById('deleteForm').action = `/services/${id}`;
-        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
     }
+});
+
+// Delete confirmation via SweetAlert2
+function confirmDelete(id, name) {
+    Swal.fire({
+        title: 'Hapus Layanan?',
+        html: `Anda akan menghapus layanan <strong>"${name}"</strong>.<br><small style="color:#aaa;">Tindakan ini tidak dapat dibatalkan.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e05252',
+        cancelButtonColor: '#444',
+        confirmButtonText: '<i class="bi bi-trash3 me-1"></i> Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('deleteForm').action = `/services/${id}`;
+            document.getElementById('deleteForm').submit();
+        }
+    });
+}
 </script>
 @endpush

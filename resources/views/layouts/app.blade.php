@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="GlowSalon - Platform reservasi salon terpercaya. Pesan layanan kecantikan profesional dengan mudah dan cepat.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'GlowSalon') | GlowSalon</title>
 
     <!-- Google Fonts -->
@@ -23,6 +24,23 @@
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
+    <!-- AOS (Animate On Scroll) CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
+    <!-- jQuery DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 
     <style>
         :root {
@@ -398,6 +416,105 @@
         }
     </style>
 
+    <!-- Custom Select2 Dark Theme Override -->
+    <style>
+        /* ===== SELECT2 DARK OVERRIDE ===== */
+        .select2-container--bootstrap-5 .select2-selection {
+            background: var(--bg-surface) !important;
+            border: 1.5px solid var(--bg-border) !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 10px 16px !important;
+            min-height: 48px !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            color: var(--text-primary) !important;
+            padding: 0 !important;
+            line-height: 1.5 !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+            color: var(--text-muted) !important;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--bg-border) !important;
+            border-radius: var(--radius-sm) !important;
+        }
+        .select2-container--bootstrap-5 .select2-results__option {
+            color: var(--text-secondary) !important;
+            padding: 10px 16px !important;
+        }
+        .select2-container--bootstrap-5 .select2-results__option--highlighted {
+            background: rgba(201,169,110,0.15) !important;
+            color: var(--primary) !important;
+        }
+        .select2-container--bootstrap-5 .select2-results__option--selected {
+            background: rgba(201,169,110,0.2) !important;
+            color: var(--primary) !important;
+        }
+        .select2-container--bootstrap-5 .select2-search__field {
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--bg-border) !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-sm) !important;
+        }
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(201,169,110,0.15) !important;
+        }
+        /* ===== DATATABLES DARK OVERRIDE ===== */
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--bg-surface) !important;
+            border: 1px solid var(--bg-border) !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 6px 10px !important;
+        }
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            color: var(--text-muted) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: var(--text-secondary) !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--gradient-gold) !important;
+            color: #0d0d0d !important;
+            border: none !important;
+            border-radius: 6px !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+            background: rgba(201,169,110,0.1) !important;
+            color: var(--primary) !important;
+        }
+        /* ===== FULLCALENDAR DARK OVERRIDE ===== */
+        .fc {
+            color: var(--text-primary) !important;
+            font-family: 'Outfit', sans-serif !important;
+        }
+        .fc .fc-toolbar-title { color: var(--primary) !important; font-size: 1.1rem !important; }
+        .fc .fc-button-primary {
+            background: rgba(201,169,110,0.15) !important;
+            border: 1px solid rgba(201,169,110,0.3) !important;
+            color: var(--primary) !important;
+        }
+        .fc .fc-button-primary:hover { background: rgba(201,169,110,0.3) !important; }
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: var(--gradient-gold) !important;
+            color: #0d0d0d !important;
+        }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--bg-border) !important; }
+        .fc .fc-daygrid-day-number { color: var(--text-secondary) !important; }
+        .fc .fc-col-header-cell-cushion { color: var(--text-muted) !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+        .fc-daygrid-day.fc-day-today { background: rgba(201,169,110,0.08) !important; }
+        .fc-event { cursor: pointer !important; border-radius: 6px !important; padding: 2px 6px !important; font-size: 0.78rem !important; }
+        .fc-event:hover { opacity: 0.85 !important; }
+    </style>
+
     @stack('styles')
 </head>
 <body>
@@ -502,10 +619,49 @@
         </div>
     </footer>
 
+    <!-- jQuery (wajib untuk DataTables, Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- jQuery DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <!-- Axios JS -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- AOS (Animate On Scroll) JS -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
     <script>
+        // Setup Axios CSRF Token
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Init AOS
+        AOS.init({
+            duration: 700,
+            once: true,
+            offset: 60,
+            easing: 'ease-out-cubic'
+        });
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {

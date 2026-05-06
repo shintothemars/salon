@@ -6,7 +6,6 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\EmployeeController;
-
 use App\Http\Controllers\AuthController;
 
 // ===== AUTH ROUTES =====
@@ -19,7 +18,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // a. Halaman Beranda
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// b. Halaman List Layanan (dengan tombol tambah, edit, hapus)
+// b. Halaman List Layanan
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 
 // c. Halaman Tambah Layanan
@@ -43,10 +42,21 @@ Route::post('/booking/{id}/confirm', [BookingController::class, 'confirm'])->nam
 // f. Halaman Berhasil Reservasi (tiket / struk)
 Route::get('/success/{id}', [BookingController::class, 'success'])->name('booking.success');
 
+// g. Invoice (preview + download PDF)
+Route::get('/booking/{id}/invoice', [BookingController::class, 'invoice'])->name('booking.invoice');
+Route::get('/booking/{id}/invoice/download', [BookingController::class, 'downloadInvoice'])->name('booking.invoice.download');
+
+// ===== API ROUTES (FullCalendar AJAX) =====
+Route::get('/api/calendar-events', [BookingController::class, 'calendarEvents'])->name('api.calendar-events');
+
 // ===== ADMIN ROUTES =====
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-dashboard', fn () => view('admin.dashboard'))->name('admin.dashboard');
-    
+
+    // Kelola Reservasi
+    Route::get('/admin/bookings', [BookingController::class, 'adminIndex'])->name('admin.bookings.index');
+    Route::patch('/admin/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('admin.bookings.updateStatus');
+
     // Kelola Stylist
     Route::get('/admin/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
     Route::get('/admin/employees/create', [EmployeeController::class, 'create'])->name('admin.employees.create');

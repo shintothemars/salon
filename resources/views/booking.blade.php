@@ -426,8 +426,8 @@
                     </div>
                 </div>
 
-                <!-- ===== SECTION: STYLIST ===== -->
-                <div class="booking-form-card mb-4">
+                <!-- ===== SECTION: STYLIST (Select2) ===== -->
+                <div class="booking-form-card mb-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="booking-form-header">
                         <div style="width:38px;height:38px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);">
                             <i class="bi bi-person-badge"></i>
@@ -439,28 +439,23 @@
                     </div>
 
                     <div class="booking-form-section">
-                        <input type="hidden" name="employee_id" id="selectedEmployee" value="{{ old('employee_id') }}" required>
-
-                        <div class="employee-cards" id="employeeCards">
+                        <label class="form-label-custom">Stylist / Terapis *</label>
+                        <select name="employee_id" id="employeeSelect"
+                            class="form-select-custom form-select w-100"
+                            required>
+                            <option value="">-- Pilih Stylist --</option>
                             @foreach($employees as $emp)
-                            <div class="employee-card {{ old('employee_id') == $emp->id ? 'selected' : '' }}"
-                                onclick="selectEmployee({{ $emp->id }}, this)"
-                                id="emp-{{ $emp->id }}">
-                                <div class="employee-avatar">{{ strtoupper(substr($emp->name, 0, 1)) }}</div>
-                                <div>
-                                    <div class="employee-name">{{ $emp->name }}</div>
-                                    <div style="font-size:0.75rem;color:var(--text-muted);">Stylist</div>
-                                </div>
-                                <div class="employee-check"><i class="bi bi-check-lg"></i></div>
-                            </div>
+                            <option value="{{ $emp->id }}"
+                                {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
+                                {{ $emp->name }}
+                            </option>
                             @endforeach
-
-                            @if($employees->isEmpty())
-                            <div style="color:var(--text-muted);font-size:0.9rem;padding:12px;">
-                                <i class="bi bi-info-circle me-2"></i>Belum ada stylist tersedia
-                            </div>
-                            @endif
+                        </select>
+                        @if($employees->isEmpty())
+                        <div style="color:var(--text-muted);font-size:0.88rem;margin-top:8px;">
+                            <i class="bi bi-info-circle me-1"></i>Belum ada stylist tersedia.
                         </div>
+                        @endif
                     </div>
                 </div>
 
@@ -534,7 +529,7 @@
                 </div>
 
                 <!-- Submit -->
-                <div class="d-flex gap-3">
+                <div class="d-flex gap-3" data-aos="fade-up" data-aos-delay="150">
                     <button type="submit" class="btn-gold d-inline-flex align-items-center gap-2 flex-fill justify-content-center" id="submitBookingBtn">
                         <i class="bi bi-calendar-check"></i>
                         Konfirmasi Reservasi
@@ -624,39 +619,108 @@
 @push('scripts')
 <script>
     let selectedTimeValue = '{{ old('time') }}';
-    let selectedEmployeeName = '';
 
-    // Initialize Flatpickr
+    // ================================================================
+    // Flatpickr - minDate "today": hari ini & besok bisa dipilih
+    // Saat tanggal berubah, nonaktifkan slot jam yang sudah lewat
+    // ================================================================
     flatpickr("#date_picker", {
         altInput: true,
         altFormat: "j F Y",
         dateFormat: "Y-m-d",
         minDate: "today",
         locale: "id",
-        theme: "dark",
-        onChange: function(selectedDates, dateStr, instance) {
+        onChange: function(selectedDates, dateStr) {
             updateSummary();
+            disablePastSlots(dateStr); // Nonaktifkan jam yang sudah lewat
         }
     });
 
+    // ================================================================
+    // Select2 untuk Stylist dropdown
+    // ================================================================
+    $(document).ready(function () {
+        $('#employeeSelect').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Pilih Stylist --',
+            allowClear: true,
+            width: '100%',
+        }).on('change', function () {
+            const selectedOption = $(this).find('option:selected');
+            document.getElementById('summaryEmployee').textContent =
+                selectedOption.text() !== '-- Pilih Stylist --' ? selectedOption.text() : '—';
+        });
+
+        // Set nilai lama jika ada (old value)
+        @if(old('employee_id'))
+        $('#employeeSelect').val('{{ old('employee_id') }}').trigger('change');
+        @endif
+    });
+
+    // ================================================================
+    // Select2 untuk Gender
+    // ================================================================
+    $(document).ready(function () {
+        $('#gender').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Pilih --',
+            minimumResultsForSearch: -1, // Sembunyikan search box
+            width: '100%',
+        });
+    });
+
+    // ================================================================
+    // Nonaktifkan slot waktu yang sudah terlewat (khusus hari ini)
+    // ================================================================
+    function disablePastSlots(selectedDate) {
+        const now   = new Date();
+        const today = now.toISOString().split('T')[0]; // format YYYY-MM-DD
+
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            const timeStr = slot.textContent.trim(); // contoh: "09:00"
+            const [h, m]  = timeStr.split(':').map(Number);
+
+            if (selectedDate === today) {
+                // Hitung selisih: tambah buffer 15 menit agar tidak bisa booking mepet
+                const slotMinutes = h * 60 + m;
+                const nowMinutes  = now.getHours() * 60 + now.getMinutes() + 15;
+
+                if (slotMinutes <= nowMinutes) {
+                    slot.classList.add('disabled');
+                    slot.title = 'Waktu ini sudah terlewat';
+                    // Batalkan pilihan jika slot yang dipilih ternyata sudah lewat
+                    if (slot.classList.contains('selected')) {
+                        slot.classList.remove('selected');
+                        selectedTimeValue = '';
+                        document.getElementById('selectedTime').value = '';
+                        document.getElementById('summaryTime').textContent = '—';
+                    }
+                } else {
+                    slot.classList.remove('disabled');
+                    slot.title = '';
+                }
+            } else {
+                // Tanggal besok atau lebih: aktifkan semua slot
+                slot.classList.remove('disabled');
+                slot.title = '';
+            }
+        });
+    }
+
+    // Pilih slot waktu (hanya jika tidak disabled)
     function selectTime(time) {
-        // Remove selected from all
-        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-        // Add to clicked
         const slotId = 'slot-' + time.replace(':', '');
-        document.getElementById(slotId).classList.add('selected');
+        const slotEl = document.getElementById(slotId);
+
+        // Jangan izinkan klik jika slot sudah dinonaktifkan
+        if (slotEl.classList.contains('disabled')) return;
+
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        slotEl.classList.add('selected');
         selectedTimeValue = time;
         document.getElementById('selectedTime').value = time;
         document.getElementById('summaryTime').textContent = time + ' WIB';
         document.getElementById('timeWarning').style.display = 'none';
-    }
-
-    function selectEmployee(id, el) {
-        document.querySelectorAll('.employee-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        document.getElementById('selectedEmployee').value = id;
-        selectedEmployeeName = el.querySelector('.employee-name').textContent;
-        document.getElementById('summaryEmployee').textContent = selectedEmployeeName;
     }
 
     function updateSummary() {
@@ -668,16 +732,20 @@
         document.getElementById('summaryPhone').textContent = phone ? '+62' + phone : '—';
 
         if (dateVal) {
-            const d = new Date(dateVal);
+            const d = new Date(dateVal + 'T00:00:00');
             const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('summaryDate').textContent = d.toLocaleDateString('id-ID', opts);
         }
     }
 
-    // Form submit validation
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    // ================================================================
+    // Form submit: validasi + cek double booking via Axios
+    // ================================================================
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Validasi waktu
         if (!selectedTimeValue) {
-            e.preventDefault();
             Swal.fire({
                 icon: 'warning',
                 title: 'Waktu Belum Dipilih',
@@ -687,21 +755,69 @@
             document.getElementById('timeSlots').scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        if (!document.getElementById('selectedEmployee').value) {
-            e.preventDefault();
+
+        // Validasi stylist
+        const employeeId = document.getElementById('employeeSelect').value;
+        if (!employeeId) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Stylist Belum Dipilih',
                 text: 'Silakan pilih stylist favorit Anda untuk melanjutkan.',
                 confirmButtonColor: '#c9a96e'
             });
-            document.getElementById('employeeCards').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('employeeSelect').focus();
             return;
+        }
+
+        // ============================================================
+        // CEK DOUBLE BOOKING via Axios SEBELUM submit
+        // ============================================================
+        const dateVal  = document.getElementById('date_picker').value;
+        const submitBtn = document.getElementById('submitBookingBtn');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memeriksa jadwal...';
+
+        try {
+            const res = await axios.get('/api/calendar-events', {
+                params: { start: dateVal, end: dateVal }
+            });
+
+            const conflict = res.data.some(ev =>
+                ev.extendedProps.employee === document.getElementById('employeeSelect').options[
+                    document.getElementById('employeeSelect').selectedIndex
+                ].text &&
+                ev.extendedProps.time === selectedTimeValue &&
+                ev.start.startsWith(dateVal)
+            );
+
+            if (conflict) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Jadwal Bentrok!',
+                    html: `Stylist yang dipilih sudah memiliki booking pada<br>
+                           <strong>${dateVal}</strong> pukul <strong>${selectedTimeValue} WIB</strong>.<br>
+                           Silakan pilih waktu atau stylist yang berbeda.`,
+                    confirmButtonColor: '#c9a96e'
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-calendar-check"></i> Konfirmasi Reservasi';
+                return;
+            }
+
+            // Tidak ada bentrok → submit form
+            this.submit();
+
+        } catch (err) {
+            // Jika API error, tetap submit (backend akan validasi ulang)
+            this.submit();
         }
     });
 
-    // Init
+    // Init: jalankan disable slot saat halaman pertama dibuka
     updateSummary();
+    const initialDate = document.getElementById('date_picker')?.value;
+    if (initialDate) disablePastSlots(initialDate);
     if (selectedTimeValue) {
         document.getElementById('summaryTime').textContent = selectedTimeValue + ' WIB';
     }

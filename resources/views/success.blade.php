@@ -458,6 +458,10 @@
                         class="share-btn share-wa">
                         <i class="bi bi-whatsapp"></i> Chat via WhatsApp
                     </a>
+                    <a href="{{ route('booking.invoice.download', $booking->id) }}"
+                        class="share-btn print-btn">
+                        <i class="bi bi-file-earmark-pdf"></i> Download Invoice
+                    </a>
                     <button onclick="window.print()" class="share-btn print-btn">
                         <i class="bi bi-printer"></i> Cetak Tiket
                     </button>
